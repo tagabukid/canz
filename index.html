@@ -6,6 +6,7 @@
 <title>CANZ // Whitelist</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg-deep:#070a1c;
@@ -758,8 +759,11 @@ const footerCans = document.getElementById('footer-cans');
   footerCans.appendChild(c);
 }
 
-/* ---------- Whitelist form logic ---------- */
-const STORAGE_KEY = 'canz-whitelist-entries';
+/* ---------- Whitelist form logic (Supabase-backed) ---------- */
+const SUPABASE_URL = 'https://ldttysrzlgmtojhdxpmv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_h-W0Fd8XnZOyryGjR4VfqQ_YDmW2_uE';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const MAX_SPOTS = 2222;
 
 const form = document.getElementById('wl-form');
@@ -805,32 +809,15 @@ function isValidWallet(v){
   return /^0x[a-fA-F0-9]{6,64}$/.test(v.trim()) || /^[a-zA-Z0-9]{20,64}$/.test(v.trim());
 }
 
-async function loadEntries(){
-  try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    return res && res.value ? JSON.parse(res.value) : [];
-  }catch(e){
-    return [];
-  }
-}
-
-async function saveEntries(entries){
-  try{
-    const res = await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
-    return !!res;
-  }catch(e){
-    return false;
-  }
-}
-
 async function refreshCount(){
-  const entries = await loadEntries();
-  countEl.textContent = Math.min(entries.length, MAX_SPOTS);
-  return entries;
+  const { count, error } = await sb.from('whitelist').select('*', { count: 'exact', head: true });
+  const c = error ? 0 : (count || 0);
+  countEl.textContent = Math.min(c, MAX_SPOTS);
+  return c;
 }
 
 document.getElementById('reset-count-btn').addEventListener('click', async () => {
-  await saveEntries([]);
+  await sb.from('whitelist').delete().neq('wallet', '__never__');
   await refreshCount();
   form.style.display = '';
   successEl.style.display = 'none';
@@ -859,35 +846,34 @@ form.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'SUBMITTING...';
 
-  const entries = await loadEntries();
+  const currentCount = await refreshCount();
 
-  if(entries.length >= MAX_SPOTS){
+  if(currentCount >= MAX_SPOTS){
     statusEl.textContent = 'Whitelist is full.';
     submitBtn.disabled = false;
     submitBtn.textContent = 'JOIN WHITELIST';
     return;
   }
 
-  const already = entries.some(en => en.wallet.toLowerCase() === wallet.toLowerCase());
-  if(already){
+  const { data: existing } = await sb.from('whitelist').select('wallet').ilike('wallet', wallet);
+  if(existing && existing.length){
     statusEl.textContent = 'This wallet is already on the whitelist.';
     submitBtn.disabled = false;
     submitBtn.textContent = 'JOIN WHITELIST';
     return;
   }
 
-  entries.push({ wallet, tags: tags || null, ts: Date.now() });
-  const ok = await saveEntries(entries);
+  const { error } = await sb.from('whitelist').insert([{ wallet, tags: tags || null }]);
 
   submitBtn.disabled = false;
   submitBtn.textContent = 'JOIN WHITELIST';
 
-  if(!ok){
+  if(error){
     statusEl.textContent = 'Something went wrong. Try again.';
     return;
   }
 
-  countEl.textContent = Math.min(entries.length, MAX_SPOTS);
+  await refreshCount();
   form.style.display = 'none';
   successEl.style.display = 'block';
   successAddr.textContent = wallet;

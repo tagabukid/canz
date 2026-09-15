@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CANZ // Whitelist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#070a1c;
+    --bg-panel:#0f1533;
+    --line:#2b3570;
+    --cyan:#4de8f4;
+    --blue:#2d6ef5;
+    --purple:#b06bff;
+    --green:#3ecf5e;
+    --pink:#ff6fb0;
+    --ink:#eef2ff;
+    --dim:#8a92c4;
+  }
+
+  *{box-sizing:border-box;}
+
+  html{
+    background:var(--bg-deep);
+    height:100%;
+  }
+  html,body{
+    margin:0;
+    min-height:100%;
+    background:var(--bg-deep);
+    color:var(--ink);
+    font-family:'VT323', monospace;
+    overflow-x:hidden;
+    overscroll-behavior-y:none;
+  }
+
+  body{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:40px 16px 80px;
+  }
+
+  /* starfield */
+  #stars{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:
+      radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+      radial-gradient(1px 1px at 90px 120px, #fff, transparent),
+      radial-gradient(1px 1px at 150px 60px, #fff, transparent),
+      radial-gradient(1px 1px at 220px 200px, #fff, transparent),
+      radial-gradient(2px 2px at 300px 90px, var(--cyan), transparent),
+      radial-gradient(1px 1px at 380px 40px, #fff, transparent),
+      radial-gradient(1px 1px at 40px 250px, #fff, transparent),
+      radial-gradient(2px 2px at 470px 180px, var(--purple), transparent),
+      radial-gradient(1px 1px at 520px 60px, #fff, transparent),
+      radial-gradient(1px 1px at 560px 300px, #fff, transparent);
+    background-repeat:repeat;
+    background-size:600px 400px;
+    opacity:.7;
+    animation:drift 90s linear infinite;
+  }
+  @keyframes drift{
+    from{background-position:0 0;}
+    to{background-position:-600px 400px;}
+  }
+
+  .scanlines{
+    position:fixed;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,.22) 3px
+    );
+    opacity:.6;
+  }
+
+  .vignette{
+    position:fixed;
+    inset:0;
+    z-index:4;
+    pointer-events:none;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%);
+  }
+
+  .grain{
+    display:none;
+  }
+
+  body{animation:flicker 6s infinite;}
+  @keyframes flicker{
+    0%, 96%, 100%{filter:brightness(1);}
+    97%{filter:brightness(1.06);}
+    98%{filter:brightness(.96);}
+    99%{filter:brightness(1.03);}
+  }
+
+  h1, .badge, .crew-title, .tasks-label, button, label{
+    text-shadow:1px 0 0 rgba(255,60,120,.35), -1px 0 0 rgba(60,220,255,.35);
+  }
+
+  main{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:560px;
+  }
+
+  /* pixel border box using layered box-shadow steps */
+  .pixel-box{
+    background:var(--bg-panel);
+    border:4px solid var(--ink);
+    box-shadow:
+      0 0 0 4px var(--bg-deep),
+      0 0 0 8px var(--blue),
+      8px 8px 0 8px rgba(0,0,0,.35);
+    image-rendering:pixelated;
+  }
+
+  header.pixel-box{
+    padding:28px 20px;
+    text-align:center;
+    margin-bottom:28px;
+  }
+
+  .badge{
+    display:inline-block;
+    font-family:'Press Start 2P', monospace;
+    font-size:9px;
+    letter-spacing:2px;
+    color:var(--bg-deep);
+    background:var(--cyan);
+    padding:6px 10px;
+    margin-bottom:18px;
+  }
+
+  h1{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(22px, 6vw, 34px);
+    line-height:1.4;
+    margin:0 0 14px;
+    letter-spacing:2px;
+  }
+  h1 .c{color:#fff;}
+  h1 .a{color:var(--green);}
+  h1 .n{color:var(--cyan);}
+  h1 .z{background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+  .sub{
+    font-size:20px;
+    color:var(--dim);
+    margin:0;
+  }
+
+  .about-text{
+    font-size:17px;
+    color:var(--dim);
+    line-height:1.4;
+    max-width:400px;
+    margin:14px auto 0;
+  }
+
+  .cans{
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:10px;
+    margin:18px 0 4px;
+  }
+  .cans canvas{
+    image-rendering:pixelated;
+    width:44px;
+    height:60px;
+  }
+
+  section.pixel-box{
+    padding:26px 22px 30px;
+  }
+
+  .field{
+    margin-bottom:20px;
+  }
+
+  label{
+    display:block;
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+    color:var(--cyan);
+    margin-bottom:10px;
+    letter-spacing:1px;
+  }
+
+  input[type=text], input[type=email]{
+    width:100%;
+    background:var(--bg-deep);
+    border:3px solid var(--line);
+    color:var(--ink);
+    font-family:'VT323', monospace;
+    font-size:20px;
+    padding:12px 14px;
+    outline:none;
+  }
+  input[type=text]:focus, input[type=email]:focus{
+    border-color:var(--cyan);
+  }
+  input::placeholder{color:#4a5290;}
+
+  .hint{
+    font-size:15px;
+    color:var(--dim);
+    margin-top:6px;
+  }
+
+  .error-text{
+    font-size:15px;
+    color:#ff6767;
+    margin-top:6px;
+    display:none;
+  }
+  .field.invalid input{border-color:#ff6767;}
+  .field.invalid .error-text{display:block;}
+
+  button{
+    width:100%;
+    font-family:'Press Start 2P', monospace;
+    font-size:13px;
+    letter-spacing:1px;
+    color:var(--bg-deep);
+    background:var(--green);
+    border:none;
+    padding:18px;
+    cursor:pointer;
+    box-shadow:0 6px 0 #1f7a34;
+    transition:transform .05s ease;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:translateY(6px);box-shadow:0 0 0 #1f7a34;}
+  button:disabled{background:#3a4270;color:#7d85b8;box-shadow:0 6px 0 #262c52;cursor:not-allowed;}
+
+  .status{
+    text-align:center;
+    font-size:15px;
+    color:var(--dim);
+    margin-top:14px;
+    min-height:18px;
+  }
+
+  .success{
+    display:none;
+    text-align:center;
+    padding:10px 0 4px;
+  }
+  .success .icon{font-size:40px;margin-bottom:6px;}
+  .success h2{
+    font-family:'Press Start 2P', monospace;
+    font-size:16px;
+    color:var(--green);
+    margin:0 0 10px;
+  }
+  .success p{color:var(--dim);font-size:18px;margin:0 0 4px;}
+  .success .addr{color:var(--cyan);word-break:break-all;}
+
+  footer{
+    margin-top:26px;
+    text-align:center;
+    font-size:14px;
+    color:#5b6296;
+    letter-spacing:1px;
+  }
+
+  .brand-footer{
+    margin-top:40px;
+    text-align:center;
+    padding:0 12px;
+  }
+  .brand-footer .cans{
+    justify-content:center;
+    margin-bottom:10px;
+  }
+  .brand-footer .cans canvas{
+    width:32px;
+    height:44px;
+  }
+  .brand-name{
+    font-family:'Press Start 2P', monospace;
+    font-size:18px;
+    letter-spacing:2px;
+    margin:0 0 10px;
+  }
+  .brand-name .c{color:#fff;}
+  .brand-name .a{color:var(--green);}
+  .brand-name .n{color:var(--cyan);}
+  .brand-name .z{background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brand-line{
+    font-size:15px;
+    color:var(--dim);
+    letter-spacing:1px;
+    margin:2px 0;
+  }
+
+  .counter-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+    color:var(--purple);
+    margin-bottom:22px;
+    letter-spacing:1px;
+  }
+  .counter-row .n{color:var(--cyan);}
+
+  .crew-section{
+    margin-bottom:28px;
+  }
+  .crew-title{
+    font-family:'Press Start 2P', monospace;
+    font-size:13px;
+    text-align:center;
+    letter-spacing:1px;
+    margin:0 0 4px;
+  }
+  .crew-title span{color:var(--cyan);}
+  .crew-sub{
+    text-align:center;
+    font-size:16px;
+    color:var(--dim);
+    margin:0 0 18px;
+  }
+  .crew-grid{
+    display:flex;
+    gap:14px;
+    overflow:hidden;
+    padding:4px 0;
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+  .crew-track{
+    display:flex;
+    gap:14px;
+    animation:crew-scroll 22s linear infinite;
+  }
+  .crew-grid:hover .crew-track{animation-play-state:paused;}
+  @keyframes crew-scroll{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+  .crew-card{
+    background:var(--bg-deep);
+    border:2px solid var(--line);
+    padding:8px 4px 10px;
+    text-align:center;
+    flex:0 0 auto;
+    width:78px;
+  }
+  .crew-card canvas{
+    image-rendering:pixelated;
+    width:56px;
+    height:77px;
+    margin:0 auto 6px;
+    display:block;
+  }
+  .crew-card .crew-name{
+    font-size:13px;
+    color:var(--cyan);
+    line-height:1.2;
+  }
+
+  .tasks{
+    margin:4px 0 24px;
+    padding:0;
+    list-style:none;
+  }
+  .tasks-label{
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+    color:var(--cyan);
+    letter-spacing:1px;
+    margin-bottom:12px;
+    display:block;
+  }
+  .task-item{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:var(--bg-deep);
+    border:3px solid var(--line);
+    padding:10px 12px;
+    margin-bottom:10px;
+  }
+  .task-item.done{border-color:var(--green);}
+  .task-check{
+    width:22px;
+    height:22px;
+    flex:0 0 22px;
+    margin-top:2px;
+    accent-color:var(--green);
+    cursor:pointer;
+  }
+  .task-body{flex:1;min-width:0;}
+  .task-title{font-size:19px;color:var(--ink);}
+  .task-link{
+    color:var(--cyan);
+    font-size:15px;
+    text-decoration:underline;
+  }
+  .task-tags{
+    width:100%;
+    margin-top:8px;
+    background:var(--bg-panel);
+    border:2px solid var(--line);
+    color:var(--ink);
+    font-family:'VT323', monospace;
+    font-size:17px;
+    padding:8px 10px;
+    outline:none;
+  }
+  .task-tags:focus{border-color:var(--cyan);}
+  .task-note{
+    font-size:14px;
+    color:var(--dim);
+    margin-top:16px;
+    text-align:center;
+  }
+
+  @media (max-width:420px){
+    .pixel-box{box-shadow:0 0 0 3px var(--bg-deep),0 0 0 6px var(--blue),6px 6px 0 6px rgba(0,0,0,.35);}
+  }
+
+  .site-nav{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    max-width:560px;
+    margin:0 auto 20px;
+    padding:10px 16px;
+    background:var(--bg-panel);
+    border:3px solid var(--ink);
+    box-shadow:0 0 0 3px var(--bg-deep),0 0 0 6px var(--blue);
+    position:relative;
+    z-index:2;
+  }
+  .site-nav canvas{
+    image-rendering:pixelated;
+    width:32px;
+    height:44px;
+    display:block;
+  }
+  .site-nav .nav-word{
+    font-family:'Press Start 2P', monospace;
+    font-size:16px;
+    letter-spacing:2px;
+  }
+  .site-nav .nav-word .c{color:#fff;}
+  .site-nav .nav-word .a{color:var(--green);}
+  .site-nav .nav-word .n{color:var(--cyan);}
+  .site-nav .nav-word .z{background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+  @media (min-width:900px){
+    main{max-width:880px;}
+    .site-nav{max-width:880px;}
+    h1{font-size:44px;}
+    .about-text{max-width:600px;font-size:19px;}
+    .cans canvas{width:56px;height:77px;}
+    header.pixel-box{padding:44px 50px;}
+    section.pixel-box{padding:38px 46px 44px;}
+    .crew-card{width:100px;}
+    .crew-card canvas{width:76px;height:104px;}
+    .crew-title{font-size:16px;}
+    .crew-sub{font-size:17px;}
+    .tasks{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+    .task-item{margin-bottom:0;}
+    .task-note{grid-column:1 / -1;}
+    button{max-width:360px;margin:0 auto;display:block;}
+  }
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<div class="site-nav"><canvas id="nav-logo"></canvas><span class="nav-word"><span class="c">C</span><span class="a">A</span><span class="n">N</span><span class="z">Z</span></span></div>
+
+<main>
+  <header class="pixel-box">
+    <h1><span class="c">C</span><span class="a">A</span><span class="n">N</span><span class="z">Z</span></h1>
+    <span class="badge">ARC CHAIN</span>
+    <div class="cans" id="header-cans"></div>
+    <p class="sub">Whitelist signup — free mint</p>
+    <p class="about-text">2222 pixel cans dropping free on ARC Chain. Each one is unique — the 12 you see below are just a sample of the personalities in the collection. No cost to mint, just tasks to prove you're really here.</p>
+  </header>
+
+  <section class="pixel-box crew-section">
+    <p class="crew-title">MEET THE <span>CREW</span></p>
+    <p class="crew-sub">A sample of the 2222-can collection.</p>
+    <div class="crew-grid"><div class="crew-track" id="crew-grid"></div></div>
+  </section>
+
+  <section class="pixel-box">
+    <div class="counter-row">
+      <span>JOINED</span>
+      <span><span class="n" id="count">0</span> / 2222</span>
+    </div>
+    <div style="text-align:right;margin:-14px 0 18px;">
+      <button type="button" id="reset-count-btn" style="width:auto;font-size:9px;padding:6px 10px;background:var(--line);box-shadow:none;color:var(--dim);">RESET (DEV)</button>
+    </div>
+
+    <form id="wl-form">
+      <div class="field" id="wallet-field">
+        <label for="wallet">Wallet address</label>
+        <input type="text" id="wallet" placeholder="0x..." autocomplete="off">
+        <div class="error-text">Enter a valid wallet address (starts with 0x, 6+ chars).</div>
+      </div>
+
+      <span class="tasks-label">Complete tasks to join</span>
+      <ul class="tasks" id="task-list">
+        <li class="task-item" data-task="follow">
+          <input type="checkbox" class="task-check">
+          <div class="task-body">
+            <div class="task-title">Follow @CANZ on X</div>
+            <a class="task-link" href="https://x.com/canz_arc" target="_blank" rel="noopener">x.com/canz_arc</a>
+          </div>
+        </li>
+        <li class="task-item" data-task="like">
+          <input type="checkbox" class="task-check">
+          <div class="task-body">
+            <div class="task-title">Like the pinned post</div>
+            <a class="task-link" href="https://x.com/canz_arc/status/2099795489848016964" target="_blank" rel="noopener">View post</a>
+          </div>
+        </li>
+        <li class="task-item" data-task="retweet">
+          <input type="checkbox" class="task-check">
+          <div class="task-body">
+            <div class="task-title">Retweet the pinned post</div>
+            <a class="task-link" href="https://x.com/canz_arc/status/2099795489848016964" target="_blank" rel="noopener">View post</a>
+          </div>
+        </li>
+        <li class="task-item" data-task="comment">
+          <input type="checkbox" class="task-check">
+          <div class="task-body">
+            <div class="task-title">Comment on the pinned post</div>
+            <a class="task-link" href="https://x.com/canz_arc/status/2099795489848016964" target="_blank" rel="noopener">View post</a>
+          </div>
+        </li>
+        <li class="task-item" data-task="tag">
+          <input type="checkbox" class="task-check" id="tag-check" disabled>
+          <div class="task-body">
+            <div class="task-title">Tag 3 friends in the comment</div>
+            <input type="text" class="task-tags" id="tag-input" placeholder="@friend1, @friend2, @friend3">
+          </div>
+        </li>
+      </ul>
+      <div class="task-note" id="task-note">Check off every task to unlock the button.</div>
+
+      <button type="submit" id="submit-btn" disabled>JOIN WHITELIST</button>
+      <div class="status" id="status"></div>
+    </form>
+
+    <div class="success" id="success">
+      <div class="icon">✅</div>
+      <h2>YOU'RE IN</h2>
+      <p>Wallet on the list:</p>
+      <p class="addr" id="success-addr"></p>
+      <p style="margin-top:14px;">Watch ARC Chain channels for mint date.</p>
+    </div>
+  </section>
+
+  <footer>Spots claimed are visible to everyone who visits this page.</footer>
+
+  <div class="brand-footer">
+    <div class="cans" id="footer-cans"></div>
+    <p class="brand-name"><span class="c">C</span><span class="a">A</span><span class="n">N</span><span class="z">Z</span></p>
+    <p class="brand-line">2222 NFTs</p>
+    <p class="brand-line">Free mint on ARC @ 2026</p>
+  </div>
+</main>
+
+<script>
+/* ---------- Meet the Crew: pixel-art can gallery ---------- */
+const CAN_PX = 8;
+const CAN_W = 16, CAN_H = 22;
+
+function makeCanCanvas(){
+  const c = document.createElement('canvas');
+  c.width = CAN_W*CAN_PX; c.height = CAN_H*CAN_PX;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  return {c, ctx};
+}
+
+function canPx(ctx, col, row, color, w=1, h=1){
+  ctx.fillStyle = color;
+  ctx.fillRect(col*CAN_PX, row*CAN_PX, w*CAN_PX, h*CAN_PX);
+}
+
+function drawCanBody(ctx, palette, rainbow){
+  const {main, light, shadow, rim, rimShade} = palette;
+  canPx(ctx, 3, 4, rim, 10, 1);
+  canPx(ctx, 2, 5, rim, 12, 1);
+  canPx(ctx, 2, 6, rimShade, 12, 1);
+  for(let r=7; r<=17; r++){
+    let rowMain = main;
+    if(rainbow){
+      const hues = ['#ff5c5c','#ff9a3c','#f4d33c','#4cc26b','#3aa0e8','#a86bff','#ff6fb0'];
+      rowMain = hues[(r-7) % hues.length];
+    }
+    canPx(ctx, 2, r, light, 1, 1);
+    canPx(ctx, 3, r, rowMain, 10, 1);
+    canPx(ctx, 13, r, shadow, 1, 1);
+  }
+  canPx(ctx, 2, 18, rimShade, 12, 1);
+  canPx(ctx, 2, 19, rim, 12, 1);
+  canPx(ctx, 3, 20, rim, 10, 1);
+}
+
+function drawCanEyes(ctx, type){
+  const y = 11;
+  switch(type){
+    case 'open': canPx(ctx,5,y,'#171b2e',2,2); canPx(ctx,9,y,'#171b2e',2,2); break;
+    case 'wink': canPx(ctx,5,y,'#171b2e',2,2); canPx(ctx,9,y+1,'#171b2e',2,1); break;
+    case 'heart':
+      canPx(ctx,5,y,'#ff3d6b',2,2); canPx(ctx,9,y,'#ff3d6b',2,2);
+      canPx(ctx,5,y-1,'#ff3d6b',1,1); canPx(ctx,7,y-1,'#ff3d6b',1,1);
+      canPx(ctx,9,y-1,'#ff3d6b',1,1); canPx(ctx,11,y-1,'#ff3d6b',1,1);
+      break;
+    case 'glow': canPx(ctx,5,y,'#39ff6a',2,2); canPx(ctx,9,y,'#39ff6a',2,2); break;
+    case 'sly': canPx(ctx,5,y+1,'#171b2e',2,1); canPx(ctx,9,y+1,'#171b2e',2,1); break;
+  }
+}
+
+function drawCanMouth(ctx, type){
+  const y = 14;
+  switch(type){
+    case 'smile': canPx(ctx,6,y,'#171b2e',1,1); canPx(ctx,7,y+1,'#171b2e',2,1); canPx(ctx,9,y,'#171b2e',1,1); break;
+    case 'grin': canPx(ctx,5,y,'#171b2e',7,1); canPx(ctx,5,y+1,'#8a1414',7,1); break;
+    case 'neutral': canPx(ctx,6,y,'#171b2e',4,1); break;
+    case 'smirk': canPx(ctx,6,y,'#171b2e',3,1); canPx(ctx,9,y-1,'#171b2e',1,1); break;
+  }
+}
+
+function drawCanBlush(ctx, color){
+  canPx(ctx,3,13,color,1,1); canPx(ctx,12,13,color,1,1);
+}
+
+function drawCanAccessory(ctx, type, accent){
+  switch(type){
+    case 'sunglasses':
+      canPx(ctx,4,10,'#101018',4,2); canPx(ctx,8,10,'#101018',4,2);
+      canPx(ctx,7,10,'#101018',2,1);
+      canPx(ctx,5,10,'#4de8f4',1,1); canPx(ctx,9,10,'#4de8f4',1,1);
+      break;
+    case 'headphones':
+      canPx(ctx,3,3,accent,10,1);
+      canPx(ctx,2,5,accent,1,3); canPx(ctx,13,5,accent,1,3);
+      canPx(ctx,1,6,accent,1,2); canPx(ctx,14,6,accent,1,2);
+      break;
+    case 'catHeadphones':
+      canPx(ctx,4,1,accent,2,2); canPx(ctx,10,1,accent,2,2);
+      canPx(ctx,4,2,'#ff9ec7',1,1); canPx(ctx,10,2,'#ff9ec7',1,1);
+      canPx(ctx,3,3,accent,10,1);
+      canPx(ctx,2,5,accent,1,3); canPx(ctx,13,5,accent,1,3);
+      break;
+    case 'ninjaMask':
+      canPx(ctx,3,9,'#101018',10,3);
+      canPx(ctx,3,3,'#101018',10,1);
+      break;
+    case 'pandaEars':
+      canPx(ctx,2,2,'#171b2e',3,3); canPx(ctx,11,2,'#171b2e',3,3);
+      canPx(ctx,4,9,'#171b2e',3,4); canPx(ctx,9,9,'#171b2e',3,4);
+      break;
+    case 'devilHorns':
+      canPx(ctx,3,2,'#7a1010',1,1); canPx(ctx,3,1,'#7a1010',1,1);
+      canPx(ctx,12,2,'#7a1010',1,1); canPx(ctx,12,1,'#7a1010',1,1);
+      canPx(ctx,4,3,'#a01a1a',1,1); canPx(ctx,11,3,'#a01a1a',1,1);
+      break;
+    case 'halo':
+      canPx(ctx,5,1,'#ffd75e',6,1);
+      canPx(ctx,4,2,'#ffd75e',1,1); canPx(ctx,11,2,'#ffd75e',1,1);
+      canPx(ctx,1,10,'#fff6e0',1,4); canPx(ctx,14,10,'#fff6e0',1,4);
+      break;
+  }
+}
+
+function drawCan(ctx, spec){
+  drawCanBody(ctx, spec.palette, spec.rainbow);
+  if(spec.accessory) drawCanAccessory(ctx, spec.accessory, spec.accent);
+  drawCanEyes(ctx, spec.eyes);
+  drawCanMouth(ctx, spec.mouth);
+  if(spec.blush) drawCanBlush(ctx, spec.blush);
+}
+
+const CREW = [
+  {name:'GREEN', spec:{palette:{main:'#4cc26b',light:'#8fe6a4',shadow:'#2b8a44',rim:'#e8edf5',rimShade:'#aeb8cc'}, eyes:'wink', mouth:'grin'}},
+  {name:'RED', spec:{palette:{main:'#e2483c',light:'#ff7d6e',shadow:'#a52a20',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'sunglasses', eyes:'open', mouth:'smirk'}},
+  {name:'BLUE', spec:{palette:{main:'#3aa0e8',light:'#7cc4f5',shadow:'#1f6fa8',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'headphones', accent:'#0d3a5c', eyes:'wink', mouth:'smile'}},
+  {name:'YELLOW', spec:{palette:{main:'#f4c430',light:'#ffe07a',shadow:'#b88f1a',rim:'#e8edf5',rimShade:'#aeb8cc'}, eyes:'open', mouth:'smile'}},
+  {name:'PINK', spec:{palette:{main:'#ff6fb0',light:'#ffa8cb',shadow:'#c23c73',rim:'#e8edf5',rimShade:'#aeb8cc'}, eyes:'heart', mouth:'smile', blush:'#ffbfd8'}},
+  {name:'PURPLE', spec:{palette:{main:'#a86bff',light:'#cca3ff',shadow:'#6f3dcc',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'catHeadphones', accent:'#4a1f99', eyes:'wink', mouth:'smile', blush:'#d9b8ff'}},
+  {name:'WHITE', spec:{palette:{main:'#f5f5f0',light:'#ffffff',shadow:'#c9c9c0',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'pandaEars', eyes:'open', mouth:'smile', blush:'#ffc9d6'}},
+  {name:'ORANGE', spec:{palette:{main:'#ff9a3c',light:'#ffc27a',shadow:'#c96b18',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'ninjaMask', eyes:'sly', mouth:'neutral'}},
+  {name:'BLACK', spec:{palette:{main:'#1c1c22',light:'#33333c',shadow:'#0a0a0d',rim:'#e8edf5',rimShade:'#aeb8cc'}, eyes:'glow', mouth:'neutral'}},
+  {name:'CREAM', spec:{palette:{main:'#fff6e0',light:'#ffffff',shadow:'#e0d3a8',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'halo', eyes:'wink', mouth:'smile'}},
+  {name:'DEVIL', spec:{palette:{main:'#d93636',light:'#f06a6a',shadow:'#941f1f',rim:'#e8edf5',rimShade:'#aeb8cc'}, accessory:'devilHorns', eyes:'open', mouth:'grin'}},
+  {name:'RAINBOW', spec:{palette:{main:'#ffffff',light:'#ffffff',shadow:'#cccccc',rim:'#e8edf5',rimShade:'#aeb8cc'}, rainbow:true, accessory:'sunglasses', eyes:'open', mouth:'smirk'}}
+];
+
+// site logo — uses the RAINBOW can ("The Icon") as the brand mark
+const navLogoCanvas = document.getElementById('nav-logo');
+navLogoCanvas.width = CAN_W*CAN_PX; navLogoCanvas.height = CAN_H*CAN_PX;
+const navLogoCtx = navLogoCanvas.getContext('2d');
+navLogoCtx.imageSmoothingEnabled = false;
+drawCan(navLogoCtx, CREW.find(c => c.name === 'RAINBOW').spec);
+
+const crewGrid = document.getElementById('crew-grid');
+[...CREW, ...CREW].forEach(can => {
+  const card = document.createElement('div');
+  card.className = 'crew-card';
+  const {c, ctx} = makeCanCanvas();
+  drawCan(ctx, can.spec);
+  card.appendChild(c);
+  crewGrid.appendChild(card);
+});
+
+// header trio — pulled from the crew
+const headerCans = document.getElementById('header-cans');
+[CREW[0], CREW[1], CREW[4]].forEach(can => {
+  const {c, ctx} = makeCanCanvas();
+  drawCan(ctx, can.spec);
+  headerCans.appendChild(c);
+});
+
+// footer mascot
+const footerCans = document.getElementById('footer-cans');
+{
+  const {c, ctx} = makeCanCanvas();
+  drawCan(ctx, CREW[0].spec);
+  footerCans.appendChild(c);
+}
+
+/* ---------- Whitelist form logic ---------- */
+const STORAGE_KEY = 'canz-whitelist-entries';
+const MAX_SPOTS = 2222;
+
+const form = document.getElementById('wl-form');
+const walletInput = document.getElementById('wallet');
+const walletField = document.getElementById('wallet-field');
+const submitBtn = document.getElementById('submit-btn');
+const statusEl = document.getElementById('status');
+const countEl = document.getElementById('count');
+const successEl = document.getElementById('success');
+const successAddr = document.getElementById('success-addr');
+
+const taskChecks = Array.from(document.querySelectorAll('.task-check'));
+const tagInput = document.getElementById('tag-input');
+const tagCheck = document.getElementById('tag-check');
+const taskNote = document.getElementById('task-note');
+
+function countTags(v){
+  return v.split(',').map(s => s.trim()).filter(s => s.length > 1).length;
+}
+
+function updateTasksState(){
+  // tag task auto-completes once 3+ handles are entered
+  const tagsOk = countTags(tagInput.value) >= 3;
+  tagCheck.checked = tagsOk;
+  tagCheck.closest('.task-item').classList.toggle('done', tagsOk);
+
+  taskChecks.forEach(chk => {
+    chk.closest('.task-item').classList.toggle('done', chk.checked);
+  });
+
+  const allDone = taskChecks.every(chk => chk.checked);
+  submitBtn.disabled = !allDone;
+  taskNote.textContent = allDone ? 'All tasks complete — you can join now.' : 'Check off every task to unlock the button.';
+}
+
+taskChecks.forEach(chk => {
+  if(chk !== tagCheck) chk.addEventListener('change', updateTasksState);
+});
+tagInput.addEventListener('input', updateTasksState);
+updateTasksState();
+
+function isValidWallet(v){
+  return /^0x[a-fA-F0-9]{6,64}$/.test(v.trim()) || /^[a-zA-Z0-9]{20,64}$/.test(v.trim());
+}
+
+async function loadEntries(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    return res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+async function saveEntries(entries){
+  try{
+    const res = await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
+    return !!res;
+  }catch(e){
+    return false;
+  }
+}
+
+async function refreshCount(){
+  const entries = await loadEntries();
+  countEl.textContent = Math.min(entries.length, MAX_SPOTS);
+  return entries;
+}
+
+document.getElementById('reset-count-btn').addEventListener('click', async () => {
+  await saveEntries([]);
+  await refreshCount();
+  form.style.display = '';
+  successEl.style.display = 'none';
+  form.reset();
+  updateTasksState();
+});
+
+function setError(field, on){
+  field.classList.toggle('invalid', on);
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  statusEl.textContent = '';
+
+  const wallet = walletInput.value.trim();
+  const tags = tagInput.value.trim();
+
+  const walletOk = isValidWallet(wallet);
+  const tasksOk = taskChecks.every(chk => chk.checked);
+
+  setError(walletField, !walletOk);
+
+  if(!walletOk || !tasksOk) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'SUBMITTING...';
+
+  const entries = await loadEntries();
+
+  if(entries.length >= MAX_SPOTS){
+    statusEl.textContent = 'Whitelist is full.';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'JOIN WHITELIST';
+    return;
+  }
+
+  const already = entries.some(en => en.wallet.toLowerCase() === wallet.toLowerCase());
+  if(already){
+    statusEl.textContent = 'This wallet is already on the whitelist.';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'JOIN WHITELIST';
+    return;
+  }
+
+  entries.push({ wallet, tags: tags || null, ts: Date.now() });
+  const ok = await saveEntries(entries);
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'JOIN WHITELIST';
+
+  if(!ok){
+    statusEl.textContent = 'Something went wrong. Try again.';
+    return;
+  }
+
+  countEl.textContent = Math.min(entries.length, MAX_SPOTS);
+  form.style.display = 'none';
+  successEl.style.display = 'block';
+  successAddr.textContent = wallet;
+});
+
+refreshCount();
+</script>
+</body>
+</html>

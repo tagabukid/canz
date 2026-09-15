@@ -426,6 +426,7 @@
     outline:none;
   }
   .task-tags:focus{border-color:var(--cyan);}
+  .task-tags.done{border-color:var(--green);}
   .task-note{
     font-size:14px;
     color:var(--dim);
@@ -789,6 +790,7 @@ function updateTasksState(){
   const tagsOk = isValidLink(tagInput.value);
   tagCheck.checked = tagsOk;
   tagCheck.closest('.task-item').classList.toggle('done', tagsOk);
+  tagInput.classList.toggle('done', tagsOk);
 
   taskChecks.forEach(chk => {
     chk.closest('.task-item').classList.toggle('done', chk.checked);
@@ -811,6 +813,7 @@ function isValidWallet(v){
 
 async function refreshCount(){
   const { count, error } = await sb.from('whitelist').select('*', { count: 'exact', head: true });
+  if(error) console.error('Supabase count error:', error);
   const c = error ? 0 : (count || 0);
   countEl.textContent = Math.min(c, MAX_SPOTS);
   return c;
@@ -869,7 +872,8 @@ form.addEventListener('submit', async (e) => {
   submitBtn.textContent = 'JOIN WHITELIST';
 
   if(error){
-    statusEl.textContent = 'Something went wrong. Try again.';
+    console.error('Supabase insert error:', error);
+    statusEl.textContent = 'Error: ' + (error.message || 'Something went wrong. Try again.');
     return;
   }
 

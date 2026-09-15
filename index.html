@@ -33,7 +33,6 @@
     color:var(--ink);
     font-family:'VT323', monospace;
     overflow-x:hidden;
-    overscroll-behavior-y:none;
   }
 
   body{
@@ -49,6 +48,7 @@
     position:fixed;
     inset:0;
     z-index:0;
+    pointer-events:none;
     background:
       radial-gradient(1px 1px at 20px 30px, #fff, transparent),
       radial-gradient(1px 1px at 90px 120px, #fff, transparent),
@@ -434,6 +434,15 @@
 
   @media (max-width:420px){
     .pixel-box{box-shadow:0 0 0 3px var(--bg-deep),0 0 0 6px var(--blue),6px 6px 0 6px rgba(0,0,0,.35);}
+    header.pixel-box{padding:22px 16px;}
+    section.pixel-box{padding:20px 16px 24px;}
+    .about-text{font-size:16px;}
+    .crew-card{width:70px;}
+    .crew-card canvas{width:50px;height:69px;}
+    .task-item{padding:9px 10px;gap:8px;}
+    .task-title{font-size:17px;}
+    .counter-row{font-size:9px;}
+    .site-nav{padding:8px 12px;gap:10px;}
   }
 
   .site-nav{
@@ -511,10 +520,10 @@
   <section class="pixel-box">
     <div class="counter-row">
       <span>JOINED</span>
-      <span><span class="n" id="count">0</span> / 2222</span>
-    </div>
-    <div style="text-align:right;margin:-14px 0 18px;">
-      <button type="button" id="reset-count-btn" style="width:auto;font-size:9px;padding:6px 10px;background:var(--line);box-shadow:none;color:var(--dim);">RESET (DEV)</button>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <button type="button" id="reset-count-btn" style="width:auto;font-family:'VT323',monospace;font-size:13px;letter-spacing:0;padding:7px 12px;background:var(--line);box-shadow:none;color:var(--dim);text-shadow:none;">RESET</button>
+        <span class="n" id="count">0</span> / 2222
+      </span>
     </div>
 
     <form id="wl-form">
@@ -558,7 +567,7 @@
           <input type="checkbox" class="task-check" id="tag-check" disabled>
           <div class="task-body">
             <div class="task-title">Tag 3 friends in the comment</div>
-            <input type="text" class="task-tags" id="tag-input" placeholder="@friend1, @friend2, @friend3">
+            <input type="text" class="task-tags" id="tag-input" placeholder="Paste comment link (https://x.com/...)">
           </div>
         </li>
       </ul>
@@ -721,7 +730,7 @@ const navLogoCanvas = document.getElementById('nav-logo');
 navLogoCanvas.width = CAN_W*CAN_PX; navLogoCanvas.height = CAN_H*CAN_PX;
 const navLogoCtx = navLogoCanvas.getContext('2d');
 navLogoCtx.imageSmoothingEnabled = false;
-drawCan(navLogoCtx, CREW.find(c => c.name === 'RAINBOW').spec);
+drawCan(navLogoCtx, CREW.find(c => c.name === 'GREEN').spec);
 
 const crewGrid = document.getElementById('crew-grid');
 [...CREW, ...CREW].forEach(can => {
@@ -767,13 +776,13 @@ const tagInput = document.getElementById('tag-input');
 const tagCheck = document.getElementById('tag-check');
 const taskNote = document.getElementById('task-note');
 
-function countTags(v){
-  return v.split(',').map(s => s.trim()).filter(s => s.length > 1).length;
+function isValidLink(v){
+  return /^https?:\/\/.+/i.test(v.trim());
 }
 
 function updateTasksState(){
-  // tag task auto-completes once 3+ handles are entered
-  const tagsOk = countTags(tagInput.value) >= 3;
+  // tag task auto-completes once a valid comment link is pasted
+  const tagsOk = isValidLink(tagInput.value);
   tagCheck.checked = tagsOk;
   tagCheck.closest('.task-item').classList.toggle('done', tagsOk);
 
